@@ -34,7 +34,7 @@ export default function TabLayout() {
         headerShown: useClientOnlyValue(false, true),
       }}>
       <Tabs.Screen
-        name="index"
+        name="today"
         options={{
           title: 'Today',
           tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
