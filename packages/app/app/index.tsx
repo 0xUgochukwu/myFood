@@ -36,9 +36,9 @@ export default function App() {
               color='#00BF63'
               isLoading={false}
               handlePress={() => {
-                router.push('/ingredients');
+                router.push('/ingredients-at-hand');
               }} />
-            <Link href="/mealPlan" className='text-secondary'>Go to Tabs</Link>
+            <Link href="/today" className='text-secondary'>Go to Tabs</Link>
           </View>
           <StatusBar backgroundColor={Colors[colorScheme ?? 'light'].background} style="light" />
         </ScrollView>

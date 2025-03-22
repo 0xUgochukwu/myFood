@@ -12,9 +12,9 @@ export default function OnboardingLayout() {
         }}
       >
         <Stack.Screen
-          name="ingredients"
+          name="ingredients-at-hand"
           options={{
-            title: 'Ingredients',
+            title: 'Ingredients Available',
             headerShown: false,
           }}
         />

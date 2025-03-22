@@ -17,14 +17,6 @@ export default function GoalsScreen() {
   const [iron, setIron] = useState('');
   const [otherGoals, setOtherGoals] = useState('');
 
-  const calculateDailyAverage = (weeklyValue: string, unit: string) => {
-    const weekly = parseInt(weeklyValue) || 0;
-    const daily = weekly / 7;
-    const roundedDaily = Math.round(daily);
-
-    return `About ${roundedDaily} ${unit} daily`;
-  };
-
   const isFormValid = () => {
     return (
       calories !== '' &&
@@ -57,7 +49,7 @@ export default function GoalsScreen() {
               What Are Your Nutritional Goals?
             </Text>
             <Text className="text-lg text-center mt-1 opacity-70" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-              Enter your weekly targets
+              Enter your daily targets
             </Text>
           </ThemedView>
 
@@ -81,21 +73,13 @@ export default function GoalsScreen() {
                       setCalories(numericValue);
                     }}
                   />
-                  {calories !== '' && calories !== '0' && (
-                    <RNText
-                      className="text-sm mt-1 opacity-70"
-                      style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    >
-                      {calculateDailyAverage(calories, 'kcal')}
-                    </RNText>
-                  )}
                 </View>
               </View>
               <RNText
                 className="text-sm mt-1 opacity-70"
                 style={{ color: Colors[colorScheme ?? 'light'].text }}
               >
-                An average adult needs about 14,000 kcal per week (2,000 kcal daily)
+                An average adult needs about 2,000 kcal daily
               </RNText>
             </View>
 
@@ -118,21 +102,13 @@ export default function GoalsScreen() {
                       setProtein(numericValue);
                     }}
                   />
-                  {protein !== '' && protein !== '0' && (
-                    <RNText
-                      className="text-sm mt-1 opacity-70"
-                      style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    >
-                      {calculateDailyAverage(protein, 'g')}
-                    </RNText>
-                  )}
                 </View>
               </View>
               <RNText
                 className="text-sm mt-1 opacity-70"
                 style={{ color: Colors[colorScheme ?? 'light'].text }}
               >
-                An average adult needs about 350-420g per week (50-60g daily)
+                An average adult needs about 50-60g daily
               </RNText>
             </View>
 
@@ -155,21 +131,13 @@ export default function GoalsScreen() {
                       setFiber(numericValue);
                     }}
                   />
-                  {fiber !== '' && fiber !== '0' && (
-                    <RNText
-                      className="text-sm mt-1 opacity-70"
-                      style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    >
-                      {calculateDailyAverage(fiber, 'g')}
-                    </RNText>
-                  )}
                 </View>
               </View>
               <RNText
                 className="text-sm mt-1 opacity-70"
                 style={{ color: Colors[colorScheme ?? 'light'].text }}
               >
-                An average adult needs about 175-210g per week (25-30g daily)
+                An average adult needs about 25-30g daily
               </RNText>
             </View>
 
@@ -192,21 +160,13 @@ export default function GoalsScreen() {
                       setVitaminC(numericValue);
                     }}
                   />
-                  {vitaminC !== '' && vitaminC !== '0' && (
-                    <RNText
-                      className="text-sm mt-1 opacity-70"
-                      style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    >
-                      {calculateDailyAverage(vitaminC, 'mg')}
-                    </RNText>
-                  )}
                 </View>
               </View>
               <RNText
                 className="text-sm mt-1 opacity-70"
                 style={{ color: Colors[colorScheme ?? 'light'].text }}
               >
-                An average adult needs about 525-630mg per week (75-90mg daily)
+                An average adult needs about 75-90mg daily
               </RNText>
             </View>
 
@@ -229,21 +189,13 @@ export default function GoalsScreen() {
                       setIron(numericValue);
                     }}
                   />
-                  {iron !== '' && iron !== '0' && (
-                    <RNText
-                      className="text-sm mt-1 opacity-70"
-                      style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    >
-                      {calculateDailyAverage(iron, 'mg')}
-                    </RNText>
-                  )}
                 </View>
               </View>
               <RNText
                 className="text-sm mt-1 opacity-70"
                 style={{ color: Colors[colorScheme ?? 'light'].text }}
               >
-                An average adult needs about 56-126mg per week (8-18mg daily, varies by gender)
+                An average adult needs about 8-18mg daily, varies by gender
               </RNText>
             </View>
 

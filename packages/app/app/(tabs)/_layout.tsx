@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { CustomIcon, CustomIcon6 } from '@/components/CustomIcon';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 export default function TabLayout() {
@@ -23,42 +24,38 @@ export default function TabLayout() {
         name="today"
         options={{
           title: 'Today',
+          headerShown: false,
           tabBarIcon: ({ color }) => <CustomIcon name="calendar" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <CustomIcon
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
       <Tabs.Screen
-        name="mealPlan"
+        name="meal-plan"
         options={{
           title: 'Meal Plan',
+          headerShown: false,
           tabBarIcon: ({ color }) => <CustomIcon6 name="bowl-food" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="grocery"
+        name="ingredients"
         options={{
-          title: 'Grocery List',
-          tabBarIcon: ({ color }) => <CustomIcon name="shopping-cart" color={color} />,
+          title: 'Ingredients',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="food-drumstick" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="feed"
         options={{
           title: 'Feed',
+          headerShown: false,
           tabBarIcon: ({ color }) => <CustomIcon name="feed" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="meal-details"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
