@@ -1,27 +1,13 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { Link, Tabs } from 'expo-router';
 import { Pressable } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { CustomIcon, CustomIcon6 } from '@/components/CustomIcon';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
-
-function TabBarIcon6(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome6 size={28} style={{ marginBottom: -3 }} {...props} />;
-}
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
@@ -37,12 +23,12 @@ export default function TabLayout() {
         name="today"
         options={{
           title: 'Today',
-          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+          tabBarIcon: ({ color }) => <CustomIcon name="calendar" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
                 {({ pressed }) => (
-                  <FontAwesome
+                  <CustomIcon
                     name="info-circle"
                     size={25}
                     color={Colors[colorScheme ?? 'light'].text}
@@ -58,21 +44,21 @@ export default function TabLayout() {
         name="mealPlan"
         options={{
           title: 'Meal Plan',
-          tabBarIcon: ({ color }) => <TabBarIcon6 name="bowl-food" color={color} />,
+          tabBarIcon: ({ color }) => <CustomIcon6 name="bowl-food" color={color} />,
         }}
       />
       <Tabs.Screen
         name="grocery"
         options={{
           title: 'Grocery List',
-          tabBarIcon: ({ color }) => <TabBarIcon name="shopping-cart" color={color} />,
+          tabBarIcon: ({ color }) => <CustomIcon name="shopping-cart" color={color} />,
         }}
       />
       <Tabs.Screen
         name="feed"
         options={{
           title: 'Feed',
-          tabBarIcon: ({ color }) => <TabBarIcon name="feed" color={color} />,
+          tabBarIcon: ({ color }) => <CustomIcon name="feed" color={color} />,
         }}
       />
     </Tabs>

@@ -25,7 +25,8 @@ export default function App() {
             Enjoy your favourite meals with meal planning done for you around your schedule
           </Text>
           <CustomButton
-            title='Get Started'
+            title='Get Started with Google'
+            icon='google'
             color='#00BF63'
             isLoading={false}
             handlePress={() => { }} />
