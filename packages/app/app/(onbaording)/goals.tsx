@@ -1,4 +1,3 @@
-// app/(onboarding)/goals.tsx
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,14 +19,13 @@ export default function GoalsScreen() {
 
   const calculateDailyAverage = (weeklyValue: string, unit: string) => {
     const weekly = parseInt(weeklyValue) || 0;
-    const daily = weekly / 7; // Divide by 7 days
-    const roundedDaily = Math.round(daily); // Round to the nearest whole number
+    const daily = weekly / 7;
+    const roundedDaily = Math.round(daily);
 
     return `About ${roundedDaily} ${unit} daily`;
   };
 
   const isFormValid = () => {
-    // Check if all numerical fields are filled and non-zero
     return (
       calories !== '' &&
       parseInt(calories) > 0 &&
@@ -44,7 +42,7 @@ export default function GoalsScreen() {
 
   const handleFinish = () => {
     if (!isFormValid()) return;
-    router.push('/home');
+    router.push('/today');
   };
 
   return (
