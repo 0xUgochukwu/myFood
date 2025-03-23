@@ -44,7 +44,6 @@ export default function FeedScreen() {
   };
 
   const handleSaveMeal = (meal: any) => {
-    // Placeholder for saving the meal to the user's Saved Meals and preferences
     alert(`Saved meal: ${meal.name}`);
   };
 

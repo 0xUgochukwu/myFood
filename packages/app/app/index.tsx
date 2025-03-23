@@ -1,6 +1,3 @@
-import { StyleSheet } from 'react-native';
-
-import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -10,11 +7,75 @@ import Images from '@/constants/Images';
 import CustomButton from '@/components/CustomButton';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from '@env';
+import { makeRedirectUri } from 'expo-auth-session';
+WebBrowser.maybeCompleteAuthSession();
+
 
 export default function App() {
   const colorScheme = useColorScheme();
+  const [user, setUser] = useState(null);
+  console.log(user);
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    scopes: ['profile', 'email'],
+  });
+  useEffect(() => {
+    signInWithGoogle();
+  }, [response]);
+
+  const getUserInfo = async (token: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userInfo = await response.json();
+      await AsyncStorage.setItem('user', JSON.stringify(userInfo));
+      setUser(userInfo);
+      router.push('/ingredients-at-hand');
+    } catch (error) {
+      console.error('Error getting user info', error);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const userJSON = await AsyncStorage.getItem('user');
+      if (userJSON) {
+        setUser(JSON.parse(userJSON));
+        router.push('/ingredients-at-hand');
+        return;
+      } else if (response?.type === "success") {
+        getUserInfo(response.params.access_token);
+      }
+      console.log(user);
+    } catch (error) {
+      console.error('Error signing in with Google', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await promptAsync();
+      if (result.type !== 'success') {
+        console.log('Google Sign-In failed:', result);
+      }
+    } catch (error) {
+      console.error('Error initiating Google Sign-In:', error);
+    } finally {
+
+    }
+  };
+
   return (
     <Fragment>
       <SafeAreaView style={{ flex: 0, backgroundColor: Colors[colorScheme ?? 'light'].background }} />
@@ -35,10 +96,17 @@ export default function App() {
               icon='google'
               color='#00BF63'
               isLoading={false}
-              handlePress={() => {
+              // handlePress={handleGoogleLogin}
+              handlePress={async () => {
+                await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
+                setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
                 router.push('/ingredients-at-hand');
-              }} />
+              }}
+            />
             <Link href="/today" className='text-secondary'>Go to Tabs</Link>
+            <Text>
+              {user && JSON.stringify(user)}
+            </Text>
           </View>
           <StatusBar backgroundColor={Colors[colorScheme ?? 'light'].background} style="light" />
         </ScrollView>

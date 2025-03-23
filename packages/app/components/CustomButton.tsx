@@ -15,23 +15,7 @@ export default function CustomButton({ title, handlePress, isLoading, icon }: Cu
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.8}
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        backgroundColor: '#00BF63',
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-        elevation: 5,
-        minWidth: '100%',
-        marginBottom: 10,
-        ...(isLoading && { opacity: 0.5 }),
-      }}
-      className={`bg-secondary rounded-xl min-h-[62px] flex flex-row justify-center items-center ${isLoading ? "opacity-50" : ""}`}
+      className={`bg-secondary rounded-xl min-h-[62px] flex flex-row justify-center items-center px-5 my-2 min-w-[100%] ${isLoading ? "opacity-50" : ""}`}
     >
       <Text className="text-white font-psemibold text-2xl" style={{ color: '#fff' }}>{title}</Text>
       {icon && <CustomIcon name={icon} size={24} color='#fff' style={{ marginLeft: 15 }} />}
