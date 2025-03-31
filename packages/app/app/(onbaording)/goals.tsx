@@ -225,7 +225,7 @@ export default function GoalsScreen() {
             disabled={!isFormValid()}
           >
             <FontAwesome6 name="check" size={24} color="#FFFFFF" />
-            <RNText className="text-right text-white text-lg font-semibold">Finish</RNText>
+            <RNText className="text-right text-white text-lg font-semibold">Generate Your Meal Plan</RNText>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -53,7 +53,7 @@ export default function IngredientsScreen() {
           Ingredients
         </Text>
         <SegmentedControl
-          values={['Ingredients', 'To Buy']}
+          values={['On Hand', 'To Buy']}
           selectedIndex={selectedTab}
           onChange={(event) => setSelectedTab(event.nativeEvent.selectedSegmentIndex)}
           style={{ marginTop: 16 }}

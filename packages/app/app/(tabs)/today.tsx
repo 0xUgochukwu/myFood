@@ -7,7 +7,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { router } from 'expo-router';
 import { Text as RNText } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
-import * as Progress from 'react-native-progress';
+import CircularProgress from '@/components/CircularProgress'; // Adjust the path as needed
 
 const todayMealPlan = {
   breakfast: { name: 'Oatmeal with Berries', calories: 300, protein: 10, carbs: 50, vitaminC: 20 },
@@ -88,16 +88,13 @@ export default function TodayScreen() {
           <View className="flex-row justify-around mt-4">
             {/* Total Calories Progress */}
             <View className="items-center">
-              <Progress.Circle
+              <CircularProgress
                 size={60}
                 progress={consumed.calories / userGoals.calories}
-                showsText={true}
                 color="#00BF63"
                 unfilledColor={Colors[colorScheme ?? 'light'].text + '20'}
-                borderWidth={0}
                 thickness={5}
                 textStyle={{ fontSize: 12, color: Colors[colorScheme ?? 'light'].text }}
-                formatText={() => `${Math.round((consumed.calories / userGoals.calories) * 100)}%`}
               />
               <RNText className="text-sm mt-2" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                 Total Calories
@@ -107,18 +104,15 @@ export default function TodayScreen() {
               </RNText>
             </View>
 
-            {/* Carbs Progress */}
+            {/* Total Carbs Progress */}
             <View className="items-center">
-              <Progress.Circle
+              <CircularProgress
                 size={60}
                 progress={consumed.carbs / userGoals.carbs}
-                showsText={true}
                 color="#00BF63"
                 unfilledColor={Colors[colorScheme ?? 'light'].text + '20'}
-                borderWidth={0}
                 thickness={5}
                 textStyle={{ fontSize: 12, color: Colors[colorScheme ?? 'light'].text }}
-                formatText={() => `${Math.round((consumed.carbs / userGoals.carbs) * 100)}%`}
               />
               <RNText className="text-sm mt-2" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                 Total Carbs
@@ -128,18 +122,15 @@ export default function TodayScreen() {
               </RNText>
             </View>
 
-            {/* Protein Progress */}
+            {/* Total Protein Progress */}
             <View className="items-center">
-              <Progress.Circle
+              <CircularProgress
                 size={60}
                 progress={consumed.protein / userGoals.protein}
-                showsText={true}
                 color="#00BF63"
                 unfilledColor={Colors[colorScheme ?? 'light'].text + '20'}
-                borderWidth={0}
                 thickness={5}
                 textStyle={{ fontSize: 12, color: Colors[colorScheme ?? 'light'].text }}
-                formatText={() => `${Math.round((consumed.protein / userGoals.protein) * 100)}%`}
               />
               <RNText className="text-sm mt-2" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                 Total Protein
@@ -153,8 +144,7 @@ export default function TodayScreen() {
 
         <View className="px-5">
           <TouchableOpacity
-            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.breakfast ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'
-              }`}
+            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.breakfast ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'}`}
             onPress={() => handleMealPress('Breakfast', todayMealPlan.breakfast)}
           >
             <View className="flex-row justify-between items-center">
@@ -203,8 +193,7 @@ export default function TodayScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.lunch ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'
-              }`}
+            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.lunch ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'}`}
             onPress={() => handleMealPress('Lunch', todayMealPlan.lunch)}
           >
             <View className="flex-row justify-between items-center">
@@ -253,8 +242,7 @@ export default function TodayScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.dinner ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'
-              }`}
+            className={`rounded-xl p-4 mb-4 border border-[#00BF63] ${eatenMeals.dinner ? 'opacity-50 bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-black'}`}
             onPress={() => handleMealPress('Dinner', todayMealPlan.dinner)}
           >
             <View className="flex-row justify-between items-center">

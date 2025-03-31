@@ -98,15 +98,15 @@ export default function App() {
               isLoading={false}
               // handlePress={handleGoogleLogin}
               handlePress={async () => {
-                await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
-                setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
+                // await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
+                // setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
                 router.push('/ingredients-at-hand');
               }}
             />
             <Link href="/today" className='text-secondary'>Go to Tabs</Link>
-            <Text>
-              {user && JSON.stringify(user)}
-            </Text>
+            {/* <Text> */}
+            {/*   {user && JSON.stringify(user)} */}
+            {/* </Text> */}
           </View>
           <StatusBar backgroundColor={Colors[colorScheme ?? 'light'].background} style="light" />
         </ScrollView>
