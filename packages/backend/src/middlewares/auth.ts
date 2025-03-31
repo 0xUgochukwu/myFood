@@ -2,25 +2,25 @@ import jwt from 'jsonwebtoken';
 import { type NextFunction, type Request, type Response } from 'express';
 import User from '../modules/users/user.model';
 
-interface UserToken {
+export interface UserToken {
   firstName: string;
   lastName: string;
   email: string;
   picture: string;
 }
 
-export default function authenticate(req: Request, res: Response, next: NextFunction) {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
+export default async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const token = req.header("Authorization")?.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ message: 'Access Denied' });
+    res.status(401).json({ message: 'Access Denied 1' });
   }
   try {
     const verifiedUser: UserToken = <UserToken>(jwt.verify(token, process.env.JWT_SECRET as string));
     req.user = verifiedUser;
 
-    const user = User.findOne({ email: verifiedUser.email });
+    const user = await User.findOne({ email: verifiedUser.email });
     if (!user) {
-      return res.status(401).json({ message: 'Access Denied' });
+      res.status(401).json({ message: 'Access Denied' });
     }
 
     next();

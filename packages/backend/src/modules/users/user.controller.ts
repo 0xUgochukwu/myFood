@@ -1,9 +1,10 @@
 import User from './user.model';
 import jwt from 'jsonwebtoken';
 import { type Request, type Response } from 'express';
+import type { UserToken } from '../../middlewares/auth';
 
 
-export default class UserController {
+class UserController {
   async googleSignOn(req: Request, res: Response) {
     const user = req.body;
 
@@ -42,4 +43,29 @@ export default class UserController {
     }
   }
 
+
+  async completeOnboarding(req: Request, res: Response): Promise<void> {
+    const user: UserToken | undefined = req.user;
+    console.log(req.user);
+    const { preferences, goals, availableIngredients } = req.body;
+
+    try {
+      const existingUser = await User.findOne({ email: user?.email });
+      if (!existingUser) {
+        res.status(404).json({ message: 'User not found' });
+      }
+      existingUser!.preferences = preferences;
+      existingUser!.goals = goals;
+      existingUser!.availableIngredients = availableIngredients;
+      existingUser!.onboardingCompleted = true;
+      await existingUser!.save();
+      res.json({ message: 'Onboarding completed' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Something went wrong' });
+    }
+  }
+
 }
+
+export default new UserController();

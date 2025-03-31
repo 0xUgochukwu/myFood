@@ -3,9 +3,11 @@ import { recipeSchema, type RecipeDocument } from '../recipes/recipe.model';
 
 
 type MealPlanDocument = Document & {
-  userId: Schema.Types.ObjectId;
-  startDate: Date;
-  endDate: Date;
+  user: Schema.Types.ObjectId;
+  week: {
+    start: Date;
+    end: Date;
+  };
   dailyPlans: [
     {
       day: string;
@@ -26,9 +28,11 @@ type MealPlanDocument = Document & {
 
 
 const mealPlanSchema = new Schema<MealPlanDocument>({
-  userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+  week: {
+    start: { type: Date, required: true },
+    end: { type: Date, required: true },
+  },
   dailyPlans: [
     {
       day: { type: String, required: true },
@@ -40,7 +44,7 @@ const mealPlanSchema = new Schema<MealPlanDocument>({
       ],
       cooking: {
         isCookingDay: { type: Boolean, required: true },
-        mealToCook: { type: String },
+        mealToCook: { type: String, required: true },
       },
     },
   ],

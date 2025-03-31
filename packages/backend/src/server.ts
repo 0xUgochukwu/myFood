@@ -9,6 +9,7 @@ dotenv.config();
 
 
 import userRoute from './modules/users/user.route';
+import mealPlanRoute from './modules/mealPlan/mealPlan.routes';
 
 const server = express();
 
@@ -19,6 +20,7 @@ server.use(cors());
 
 server.use('/api', routes);
 server.use('/api/users', userRoute);
+server.use('/api/meal-plan', mealPlanRoute);
 
 
 db.connect();
