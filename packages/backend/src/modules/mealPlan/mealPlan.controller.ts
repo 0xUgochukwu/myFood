@@ -23,7 +23,7 @@ class MealPlanController {
       const user = await User.findOne({ email: req.user?.email });
 
       if (!user) {
-        res.status(400).json({ message: 'User not found' });
+        res.status(400).json({ success: false, message: 'User not found' });
       }
 
       const content = `
@@ -54,6 +54,8 @@ class MealPlanController {
            - Prioritize the user's favorite foods where possible.
            - Use the user's available ingredients as much as possible, but you can include additional ingredients if needed.
         4. Ensure the total nutritional content of each day's meals is as close as possible to the user's daily nutritional goals.
+        5. The user is not looking to cook everyday so on the meal plan, cooking should not be done everyday and meals that are cooked can be repeated you can specify how many portions of the meal is to be cooked in the mealToCook with '(n portions)' wherew n is the number of portions/ how many times the user will eat the meal within the week and then repeat the meal within the week depending on the number of portions, make sure the total
+          meal cooking time is as close as possible to how long the user has to cook weekly
       `;
 
       const thread = await openai.beta.threads.create();
@@ -84,16 +86,76 @@ class MealPlanController {
         });
 
         await mealPlan.save();
-        res.status(200).json({ message: 'Meal plan generated successfully', data: JSON.parse(messages.data[0]!.content[0]!.text.value) });
+        res.status(200).json({ success: true, message: 'Meal plan generated successfully', data: JSON.parse(messages.data[0]!.content[0]!.text.value) });
       } else {
         console.log(run.status);
-        res.status(500).json({ message: 'Failed to generate meal plan', error: run.status });
+        res.status(500).json({ success: false, message: 'Failed to generate meal plan', error: run.status });
       }
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: 'Something went wrong', error });
+      res.status(500).json({ success: false, message: 'Something went wrong', error });
     }
   }
+
+  getMealPlan = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(400).json({ success: false, message: 'User not found' });
+      }
+
+      const mealPlan = await MealPlan.findOne({ user: user?._id, week: this.getWeekRange() })
+      if (!mealPlan) {
+        res.status(404).json({ success: false, message: 'Meal plan not found' });
+        return;
+      }
+      res.status(200).json({ success: true, message: 'Meal plan retrieved successfully', data: mealPlan });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong', error });
+    }
+  }
+
+  getTodayMealPlan = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(400).json({ success: false, message: 'User not found' });
+      }
+      const mealPlan = await MealPlan.findOne({ user: user?._id, week: this.getWeekRange() })
+      if (!mealPlan) {
+        res.status(404).json({ success: false, message: 'Meal plan not found' });
+        return;
+      }
+      const today = new Date();
+      const day = today.toLocaleString('default', { weekday: 'long' });
+      const todayMealPlan = mealPlan.dailyPlans.find((plan) => plan.day === day);
+      res.status(200).json({ success: true, message: 'Today\'s meal plan retrieved successfully', data: todayMealPlan });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong', error });
+    }
+  }
+
+  getNeededIngredients = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(400).json({ success: false, message: 'User not found' });
+      }
+      const mealPlan = await MealPlan.findOne({ user: user?._id, week: this.getWeekRange() })
+      if (!mealPlan) {
+        res.status(404).json({ success: false, message: 'Meal plan not found' });
+        return;
+      }
+      res.status(200).json({ success: true, message: 'Needed ingredients retrieved successfully', data: mealPlan.ingredientsNeeded });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong', error });
+    }
+  }
+
+
 }
 
 export default new MealPlanController();

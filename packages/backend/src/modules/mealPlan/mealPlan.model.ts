@@ -20,6 +20,7 @@ type MealPlanDocument = Document & {
       cooking: {
         isCookingDay: boolean;
         mealToCook: string;
+        cookingInstructions: string;
       }
     }
   ];
@@ -43,8 +44,9 @@ const mealPlanSchema = new Schema<MealPlanDocument>({
         },
       ],
       cooking: {
-        isCookingDay: { type: Boolean, required: true },
-        mealToCook: { type: String, required: true },
+        isCookingDay: { type: Boolean },
+        mealToCook: { type: String },
+        cookingInstructions: { type: String },
       },
     },
   ],
