@@ -105,6 +105,36 @@ class UserController {
       res.status(500).json({ success: false, message: 'Something went wrong' });
     }
   }
+
+  checkOnboardingStatus = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+        return;
+      }
+      
+      res.json({
+        success: true,
+        message: 'User onboarding status retrieved successfully',
+        data: {
+          onboardingCompleted: user.onboardingCompleted || false,
+          user: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            picture: user.picture,
+          }
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong' });
+    }
+  }
 }
 
 export default new UserController();

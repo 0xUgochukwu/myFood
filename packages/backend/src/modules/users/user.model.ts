@@ -43,6 +43,7 @@ const userSchema = new Schema<UserDocument>({
   },
   availableIngredients: { type: [String], default: [] },
   savedRecipes: { type: [String], default: [] },
+  onboardingCompleted: { type: Boolean, default: false },
 });
 
 

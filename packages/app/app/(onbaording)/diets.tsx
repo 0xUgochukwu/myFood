@@ -10,6 +10,7 @@ import SearchBar from '@/components/SearchBar';
 import ItemList from '@/components/ItemList';
 import SelectedItems from '@/components/SelectedItems';
 import { Text as RNText } from 'react-native';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const dummyDiets = [
   'Vegan', 'Vegetarian', 'Pescatarian', 'Keto', 'Paleo', 'Low-Carb', 'Gluten-Free',
@@ -20,7 +21,8 @@ const dummyDiets = [
 export default function DietsScreen() {
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDiets, setSelectedDiets] = useState<string[]>([]);
+  const { onboardingData, setDiets } = useOnboarding();
+  const [selectedDiets, setSelectedDiets] = useState<string[]>(onboardingData.diets);
   const [customDiets, setCustomDiets] = useState<string[]>([]);
 
   const allDiets = useMemo(() => [...dummyDiets, ...customDiets], [customDiets]);
@@ -46,9 +48,13 @@ export default function DietsScreen() {
 
   const toggleDiet = (diet: string) => {
     if (selectedDiets.includes(diet)) {
-      setSelectedDiets(selectedDiets.filter((item) => item !== diet));
+      const updatedDiets = selectedDiets.filter((item) => item !== diet);
+      setSelectedDiets(updatedDiets);
+      setDiets(updatedDiets);
     } else {
-      setSelectedDiets([...selectedDiets, diet]);
+      const updatedDiets = [...selectedDiets, diet];
+      setSelectedDiets(updatedDiets);
+      setDiets(updatedDiets);
     }
   };
 
@@ -60,7 +66,7 @@ export default function DietsScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: Colors[colorScheme ?? 'light'].background }}>
       <ThemedView className="p-5 pt-5 pb-2">
         <Text className="text-3xl font-bold text-center" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-          What’s Your Diet Like?
+          What's Your Diet Like?
         </Text>
         <Text className="text-lg text-center mt-1 opacity-70" style={{ color: Colors[colorScheme ?? 'light'].text }}>
           Select your diet preferences

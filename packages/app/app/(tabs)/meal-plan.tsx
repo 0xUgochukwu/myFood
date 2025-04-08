@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, FlatList, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, FlatList, Modal, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, View as ThemedView } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -8,47 +8,7 @@ import { router } from 'expo-router';
 import { Text as RNText } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-
-const weeklyMealPlan = {
-  Monday: {
-    breakfast: { name: 'Pancakes with Maple Syrup', calories: 400, carbs: 60, protein: 8 },
-    lunch: { name: 'Turkey Sandwich', calories: 500, carbs: 40, protein: 25 },
-    dinner: { name: 'Beef Stir-Fry', calories: 600, carbs: 50, protein: 35 },
-    cookingSession: { time: '6:00 PM', mealsToPrep: ['Turkey Sandwich', 'Beef Stir-Fry'] },
-  },
-  Tuesday: {
-    breakfast: { name: 'Greek Yogurt with Honey', calories: 300, carbs: 30, protein: 15 },
-    lunch: { name: 'Quinoa Salad', calories: 450, carbs: 55, protein: 12 },
-    dinner: { name: 'Grilled Salmon', calories: 550, carbs: 20, protein: 40 },
-  },
-  Wednesday: {
-    breakfast: { name: 'Avocado Toast', calories: 350, carbs: 40, protein: 10 },
-    lunch: { name: 'Chicken Caesar Salad', calories: 400, carbs: 15, protein: 30 },
-    dinner: { name: 'Vegetable Lasagna', calories: 500, carbs: 60, protein: 20 },
-    cookingSession: { time: '5:30 PM', mealsToPrep: ['Chicken Caesar Salad', 'Vegetable Lasagna'] },
-  },
-  Thursday: {
-    breakfast: { name: 'Smoothie Bowl', calories: 300, carbs: 50, protein: 5 },
-    lunch: { name: 'Tuna Wrap', calories: 450, carbs: 35, protein: 25 },
-    dinner: { name: 'Pork Chops with Apples', calories: 600, carbs: 40, protein: 35 },
-  },
-  Friday: {
-    breakfast: { name: 'Omelette with Spinach', calories: 350, carbs: 10, protein: 20 },
-    lunch: { name: 'Falafel Bowl', calories: 500, carbs: 60, protein: 15 },
-    dinner: { name: 'Shrimp Pasta', calories: 550, carbs: 70, protein: 25 },
-  },
-  Saturday: {
-    breakfast: { name: 'Oatmeal with Berries', calories: 300, carbs: 50, protein: 10 },
-    lunch: { name: 'Grilled Chicken Salad', calories: 450, carbs: 20, protein: 30 },
-    dinner: { name: 'Salmon with Quinoa', calories: 600, carbs: 60, protein: 40 },
-    cookingSession: { time: '4:00 PM', mealsToPrep: ['Grilled Chicken Salad', 'Salmon with Quinoa'] },
-  },
-  Sunday: {
-    breakfast: { name: 'French Toast', calories: 400, carbs: 55, protein: 10 },
-    lunch: { name: 'BBQ Chicken Wrap', calories: 500, carbs: 45, protein: 30 },
-    dinner: { name: 'Stuffed Peppers', calories: 450, carbs: 50, protein: 20 },
-  },
-};
+import { getWeeklyMealPlan, generateMealPlan } from '../services/api';
 
 export default function MealPlanScreen() {
   const colorScheme = useColorScheme();
@@ -70,6 +30,105 @@ export default function MealPlanScreen() {
   });
   const [savedMeals, setSavedMeals] = useState<any[]>([]);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const [weeklyMealPlan, setWeeklyMealPlan] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchWeeklyMealPlan = async () => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      const response = await getWeeklyMealPlan();
+      
+      if (response.success && response.data) {
+        // Transform the API response into the format expected by the UI
+        const transformedMealPlan: any = {};
+        
+        response.data.dailyPlans.forEach((dayPlan: any) => {
+          const dayName = dayPlan.day;
+          transformedMealPlan[dayName] = {
+            breakfast: {
+              name: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.name || 'No breakfast planned',
+              calories: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.nutrition.calories || 0,
+              carbs: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.nutrition.carbs || 0,
+              protein: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.nutrition.protein || 0,
+              description: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.description || '',
+              ingredients: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.ingredients || [],
+              instructions: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'breakfast')?.recipe.instructions || [],
+            },
+            lunch: {
+              name: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.name || 'No lunch planned',
+              calories: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.nutrition.calories || 0,
+              carbs: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.nutrition.carbs || 0,
+              protein: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.nutrition.protein || 0,
+              description: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.description || '',
+              ingredients: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.ingredients || [],
+              instructions: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'lunch')?.recipe.instructions || [],
+            },
+            dinner: {
+              name: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.name || 'No dinner planned',
+              calories: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.nutrition.calories || 0,
+              carbs: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.nutrition.carbs || 0,
+              protein: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.nutrition.protein || 0,
+              description: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.description || '',
+              ingredients: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.ingredients || [],
+              instructions: dayPlan.meals.find((m: any) => m.mealTime.toLowerCase() === 'dinner')?.recipe.instructions || [],
+            },
+          };
+          
+          if (dayPlan.cooking && dayPlan.cooking.isCookingDay) {
+            transformedMealPlan[dayName].cookingSession = {
+              time: dayPlan.cooking.cookingInstructions.split(' at ')[1] || '6:00 PM',
+              mealsToPrep: dayPlan.cooking.mealToCook.split(', ') || [],
+            };
+          }
+        });
+        
+        setWeeklyMealPlan(transformedMealPlan);
+      } else {
+        setWeeklyMealPlan(null);
+        setError('No meal plan found. Generate a new one to get started.');
+      }
+    } catch (err) {
+      console.error('Error fetching meal plan:', err);
+      setError('An error occurred while loading your meal plan.');
+      setWeeklyMealPlan(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateMealPlan = async () => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      const response = await generateMealPlan();
+      
+      if (response.success) {
+        await fetchWeeklyMealPlan();
+      } else {
+        setError('Failed to generate meal plan. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error generating meal plan:', err);
+      setError('An error occurred while generating your meal plan.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchWeeklyMealPlan();
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    fetchWeeklyMealPlan();
+  }, []);
 
   const toggleDay = (day: string) => {
     setExpandedDays((prev) =>
@@ -130,9 +189,42 @@ export default function MealPlanScreen() {
     alert(`Shared meal: ${meal.mealName}`);
   };
 
-  const handleGenerateMealPlan = () => {
-    alert('Meal plan generated for next week! (Placeholder)');
-  };
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: Colors[colorScheme ?? 'light'].background }}>
+        <ActivityIndicator size="large" color="#00BF63" />
+        <Text className="mt-4 text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+          Loading your meal plan...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!weeklyMealPlan) {
+    return (
+      <SafeAreaView className="flex-1" style={{ backgroundColor: Colors[colorScheme ?? 'light'].background }}>
+        <ThemedView className="flex-1 p-5 items-center justify-center">
+          <Text className="text-2xl font-bold text-center mb-4" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+            No Meal Plan Found
+          </Text>
+          <Text className="text-lg text-center mb-8" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+            Generate a meal plan to get started with your nutrition journey.
+          </Text>
+          <TouchableOpacity
+            className="bg-[#00BF63] px-8 py-4 rounded-xl"
+            onPress={handleGenerateMealPlan}
+          >
+            <Text className="text-white text-lg font-semibold">Generate Meal Plan</Text>
+          </TouchableOpacity>
+          {error && (
+            <Text className="text-red-500 text-center mt-4" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              {error}
+            </Text>
+          )}
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: Colors[colorScheme ?? 'light'].background }}>
@@ -152,11 +244,28 @@ export default function MealPlanScreen() {
         />
       </ThemedView>
 
+      {error && (
+        <View className="px-5 mb-4">
+          <RNText className="text-red-500 text-center" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+            {error}
+          </RNText>
+        </View>
+      )}
+
       {selectedTab === 0 ? (
         // Weekly Plan Subtab
         <FlatList
           data={Object.keys(weeklyMealPlan)}
           keyExtractor={(item) => item}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors[colorScheme ?? 'light'].text}
+              colors={['#00BF63']}
+              progressBackgroundColor={Colors[colorScheme ?? 'light'].background}
+            />
+          }
           renderItem={({ item: day }) => {
             const dayData = weeklyMealPlan[day as keyof typeof weeklyMealPlan];
             const isExpanded = expandedDays.includes(day);
@@ -248,18 +357,6 @@ export default function MealPlanScreen() {
               </View>
             );
           }}
-          ListFooterComponent={
-            <View className="px-5 mb-4">
-              <TouchableOpacity
-                className="p-4 rounded-xl bg-[#00BF63]"
-                onPress={handleGenerateMealPlan}
-              >
-                <RNText className="text-lg font-semibold text-center text-white">
-                  Generate Meal Plan for Next Week
-                </RNText>
-              </TouchableOpacity>
-            </View>
-          }
         />
       ) : (
         // Plan Preferences Subtab
@@ -282,7 +379,7 @@ export default function MealPlanScreen() {
                   <TextInput
                     className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 mb-2"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="Meal you’d like to see more of (e.g., Grilled Chicken)"
+                    placeholder="Meal you'd like to see more of (e.g., Grilled Chicken)"
                     placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     value={newPreference.mealName}
                     onChangeText={(text) => setNewPreference({ ...newPreference, mealName: text })}

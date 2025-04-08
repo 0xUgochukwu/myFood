@@ -2,8 +2,7 @@ import { Text, View } from '@/components/Themed';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, Image } from 'react-native';
-import axios from 'axios';
+import { ScrollView, Image, Alert } from 'react-native';
 import Images from '@/constants/Images';
 import CustomButton from '@/components/CustomButton';
 import Colors from '@/constants/Colors';
@@ -13,74 +12,136 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID, API_URL } from '@env';
-import { makeRedirectUri } from 'expo-auth-session';
+import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from '@env';
+import { authenticateWithGoogle, checkOnboardingStatus } from './services/api';
+
 WebBrowser.maybeCompleteAuthSession();
 
+interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+  picture: string;
+}
 
 export default function App() {
   const colorScheme = useColorScheme();
-  const [user, setUser] = useState(null);
-  console.log(user);
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  const [_, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
     scopes: ['profile', 'email'],
   });
+
   useEffect(() => {
-    signInWithGoogle();
+    checkExistingSession();
+  }, []);
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      handleGoogleResponse(response.params.access_token);
+    }
   }, [response]);
 
-  const getUserInfo = async (token: string) => {
-    if (!token) return;
-
+  const checkExistingSession = async () => {
     try {
-      const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const googleUserInfo = await response.json();
-      const userInfo = await axios.post(`${API_URL}/auth/google`, {
-        firstName: googleUserInfo.given_name,
-        lastName: googleUserInfo.family_name,
-        email: googleUserInfo.email,
-        image: googleUserInfo.picture,
-      });
-      await AsyncStorage.setItem('user', JSON.stringify(userInfo.data.user));
-      await AsyncStorage.setItem('token', userInfo.data.token);
-      setUser(userInfo.data.user);
-      router.push('/ingredients-at-hand');
+      const userJSON = await AsyncStorage.getItem('user');
+      const sessionTimestamp = await AsyncStorage.getItem('sessionTimestamp');
+      
+      if (!userJSON || !sessionTimestamp) {
+        return;
+      }
+
+      // Check if session is older than 24 hours
+      const currentTime = new Date().getTime();
+      const sessionTime = parseInt(sessionTimestamp);
+      const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      
+      if (currentTime - sessionTime > twentyFourHours) {
+        // Session expired, clear storage
+        await AsyncStorage.multiRemove(['user', 'sessionTimestamp', 'token']);
+        return;
+      }
+
+      // Valid session, check onboarding status
+      const onboardingResponse = await checkOnboardingStatus();
+      if (!onboardingResponse.success || !onboardingResponse.data) {
+        return;
+      }
+
+      setUser(onboardingResponse.data.user);
+      
+      // Route based on onboarding status
+      if (onboardingResponse.data.onboardingCompleted) {
+        router.push('/today');
+      } else {
+        router.push('/ingredients-at-hand');
+      }
     } catch (error) {
-      console.error('Error getting user info', error);
+      console.error('Error checking session:', error);
     }
   };
 
-  const signInWithGoogle = async () => {
+  const handleGoogleResponse = async (accessToken: string) => {
+    if (!accessToken) return;
+
+    setIsLoading(true);
     try {
-      const userJSON = await AsyncStorage.getItem('user');
-      if (userJSON) {
-        setUser(JSON.parse(userJSON));
-        router.push('/ingredients-at-hand');
-        return;
-      } else if (response?.type === "success") {
-        getUserInfo(response.params.access_token);
+      const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const googleUserInfo = await response.json();
+      console.log('Google user info:', googleUserInfo);
+      
+      const authResponse = await authenticateWithGoogle({
+        firstName: googleUserInfo.given_name,
+        lastName: googleUserInfo.family_name,
+        email: googleUserInfo.email,
+        picture: googleUserInfo.picture,
+      });
+      console.log('Auth response:', authResponse);
+
+      if (authResponse) {
+        // Store user data and session timestamp
+        await AsyncStorage.multiSet([
+          ['user', JSON.stringify(authResponse)],
+          ['sessionTimestamp', new Date().getTime().toString()]
+
+        ]);
+        setUser(authResponse);
+
+        const onboardingResponse = await checkOnboardingStatus();
+        if (onboardingResponse.success && onboardingResponse.data) {
+          if (onboardingResponse.data.onboardingCompleted) {
+            router.push('/today');
+          } else {
+            router.push('/ingredients-at-hand');
+          }
+        }
+    
       }
-      console.log(user);
     } catch (error) {
-      console.error('Error signing in with Google', error);
+      console.log('Error during authentication:', error);
+      Alert.alert('Error', 'Failed to authenticate with Google Here');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await promptAsync();
-      if (result.type !== 'success') {
-        console.log('Google Sign-In failed:', result);
-      }
+      setIsLoading(true);
+      await promptAsync();
+
+      
     } catch (error) {
       console.error('Error initiating Google Sign-In:', error);
+      Alert.alert('Error', 'Failed to start Google Sign-In');
     } finally {
-
+      setIsLoading(false);
     }
   };
 
@@ -102,26 +163,19 @@ export default function App() {
             <CustomButton
               title='Get Started with Google'
               icon='google'
-              color='#00BF63'
-              isLoading={false}
+              isLoading={isLoading}
               handlePress={handleGoogleLogin}
-              // handlePress={async () => {
-              //   // await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
-              //   // setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
-              //   router.push('/ingredients-at-hand');
-              // }}
             />
-            <Link href="/today" className='text-secondary'>Go to Tabs</Link>
-            {/* <Text> */}
-            {/*   {user && JSON.stringify(user)} */}
-            {/* </Text> */}
+            <Link href="/today">
+              <Text className='text-l my-4 text-center'>
+                Skip for now
+              </Text>
+            </Link>
           </View>
           <StatusBar backgroundColor={Colors[colorScheme ?? 'light'].background} style="light" />
         </ScrollView>
-
       </SafeAreaView>
     </Fragment>
-
   );
 }
 

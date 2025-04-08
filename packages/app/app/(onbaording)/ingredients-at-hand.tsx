@@ -10,6 +10,7 @@ import SearchBar from '@/components/SearchBar';
 import ItemList from '@/components/ItemList';
 import SelectedItems from '@/components/SelectedItems';
 import { Text as RNText } from 'react-native';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const dummyIngredients = [
   'Tomato', 'Onion', 'Garlic', 'Chicken', 'Beef', 'Pork', 'Salmon', 'Shrimp', 'Rice', 'Pasta',
@@ -20,7 +21,8 @@ const dummyIngredients = [
 export default function IngredientsScreen() {
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const { onboardingData, setAvailableIngredients } = useOnboarding();
+  const [selectedIngredients, setSelectedIngredients] = useState<string[]>(onboardingData.availableIngredients);
   const [customIngredients, setCustomIngredients] = useState<string[]>([]);
 
   const allIngredients = useMemo(() => [...dummyIngredients, ...customIngredients], [customIngredients]);
@@ -46,9 +48,13 @@ export default function IngredientsScreen() {
 
   const toggleIngredient = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
-      setSelectedIngredients(selectedIngredients.filter((item) => item !== ingredient));
+      const updatedIngredients = selectedIngredients.filter((item) => item !== ingredient);
+      setSelectedIngredients(updatedIngredients);
+      setAvailableIngredients(updatedIngredients);
     } else {
-      setSelectedIngredients([...selectedIngredients, ingredient]);
+      const updatedIngredients = [...selectedIngredients, ingredient];
+      setSelectedIngredients(updatedIngredients);
+      setAvailableIngredients(updatedIngredients);
     }
   };
 

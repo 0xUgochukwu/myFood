@@ -8,7 +8,11 @@ export default function OnboardingLayout() {
     <>
       <Stack
         screenOptions={{
-          headerShown: useClientOnlyValue(true, false)
+          headerShown: useClientOnlyValue(true, false),
+          gestureEnabled: true,
+          gestureDirection: 'horizontal',
+          animation: 'slide_from_right',
+          headerBackVisible: false,
         }}
       >
         <Stack.Screen
@@ -16,6 +20,8 @@ export default function OnboardingLayout() {
           options={{
             title: 'Ingredients Available',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
         <Stack.Screen
@@ -23,6 +29,8 @@ export default function OnboardingLayout() {
           options={{
             title: 'Allergies',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
         <Stack.Screen
@@ -30,6 +38,8 @@ export default function OnboardingLayout() {
           options={{
             title: 'Diets',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
         <Stack.Screen
@@ -37,6 +47,8 @@ export default function OnboardingLayout() {
           options={{
             title: 'Foods',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
         <Stack.Screen
@@ -44,13 +56,17 @@ export default function OnboardingLayout() {
           options={{
             title: 'Time',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
         <Stack.Screen
           name="goals"
           options={{
-            title: 'Allergies',
+            title: 'Goals',
             headerShown: false,
+            gestureEnabled: true,
+            headerBackVisible: false,
           }}
         />
 

@@ -10,6 +10,7 @@ import SearchBar from '@/components/SearchBar';
 import ItemList from '@/components/ItemList';
 import SelectedItems from '@/components/SelectedItems';
 import { Text as RNText } from 'react-native';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const dummyAllergies = [
   'Peanuts', 'Tree Nuts', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Fish', 'Shellfish',
@@ -19,7 +20,8 @@ const dummyAllergies = [
 export default function AllergiesScreen() {
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
+  const { onboardingData, setAllergies } = useOnboarding();
+  const [selectedAllergies, setSelectedAllergies] = useState<string[]>(onboardingData.allergies);
   const [customAllergies, setCustomAllergies] = useState<string[]>([]);
 
   const allAllergies = useMemo(() => [...dummyAllergies, ...customAllergies], [customAllergies]);
@@ -45,9 +47,13 @@ export default function AllergiesScreen() {
 
   const toggleAllergy = (allergy: string) => {
     if (selectedAllergies.includes(allergy)) {
-      setSelectedAllergies(selectedAllergies.filter((item) => item !== allergy));
+      const updatedAllergies = selectedAllergies.filter((item) => item !== allergy);
+      setSelectedAllergies(updatedAllergies);
+      setAllergies(updatedAllergies);
     } else {
-      setSelectedAllergies([...selectedAllergies, allergy]);
+      const updatedAllergies = [...selectedAllergies, allergy];
+      setSelectedAllergies(updatedAllergies);
+      setAllergies(updatedAllergies);
     }
   };
 

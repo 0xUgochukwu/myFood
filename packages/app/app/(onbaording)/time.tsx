@@ -7,10 +7,12 @@ import { useColorScheme } from '@/components/useColorScheme';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router } from 'expo-router';
 import { Text as RNText } from 'react-native';
+import { useOnboarding } from '../context/OnboardingContext';
 
 export default function TimeScreen() {
   const colorScheme = useColorScheme();
-  const [cookingTime, setCookingTime] = useState('');
+  const { onboardingData, setCookingTime } = useOnboarding();
+  const [cookingTime, setCookingTimeState] = useState(onboardingData.cookingTime ? onboardingData.cookingTime.toString() : '');
 
   const calculateDailyAverage = () => {
     const weeklyHours = parseInt(cookingTime) || 0;
@@ -57,7 +59,8 @@ export default function TimeScreen() {
                 value={cookingTime}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, '');
-                  setCookingTime(numericValue);
+                  setCookingTimeState(numericValue);
+                  setCookingTime(parseInt(numericValue) || 0);
                 }}
               />
               <RNText

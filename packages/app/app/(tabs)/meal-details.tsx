@@ -1,16 +1,26 @@
 // app/(tabs)/meal-details.tsx
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Modal, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, View as ThemedView } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { Text as RNText } from 'react-native';
+import { getTodayMealPlan } from '../services/api';
+
+interface Recipe {
+  ingredients: string[];
+  instructions: string[];
+}
+
+interface Recipes {
+  [key: string]: Recipe;
+}
 
 // Dummy recipe data (replace with actual data from your backend or state)
-const recipes = {
+const recipes: Recipes = {
   'Oatmeal with Berries': {
     ingredients: ['1/2 cup oats', '1 cup water', '1/2 cup mixed berries', '1 tbsp honey'],
     instructions: [
@@ -39,10 +49,52 @@ const recipes = {
 
 export default function MealDetailsScreen() {
   const colorScheme = useColorScheme();
-  const { mealType, mealName, calories, protein } = useLocalSearchParams();
-  const [modalVisible, setModalVisible] = useState(false);
+  const params = useLocalSearchParams();
+  const [mealType, setMealType] = useState(params.mealType as string);
+  const [mealName, setMealName] = useState(params.mealName as string);
+  const [calories, setCalories] = useState(params.calories as string);
+  const [protein, setProtein] = useState(params.protein as string);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const recipe = recipes[mealName as string] || { ingredients: [], instructions: [] };
+  const recipe = recipes[mealName] || { ingredients: [], instructions: [] };
+
+  const fetchMealDetails = async () => {
+    setError(null);
+    try {
+      const response = await getTodayMealPlan();
+      
+      if (response.success && response.data) {
+        const meals = response.data.meals || [];
+        const meal = meals.find((m: any) => 
+          m.recipe.name.toLowerCase() === mealName.toLowerCase()
+        );
+
+        if (meal) {
+          setMealName(meal.recipe.name);
+          setCalories(meal.recipe.nutrition.calories.toString());
+          setProtein(meal.recipe.nutrition.protein.toString());
+          if (meal.recipe.ingredients && meal.recipe.instructions) {
+            recipes[meal.recipe.name] = {
+              ingredients: meal.recipe.ingredients,
+              instructions: meal.recipe.instructions,
+            };
+          }
+        }
+      } else {
+        setError('Failed to update meal details.');
+      }
+    } catch (err) {
+      console.error('Error fetching meal details:', err);
+      setError('An error occurred while updating meal details.');
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchMealDetails();
+    setRefreshing(false);
+  }, [mealName]);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: Colors[colorScheme ?? 'light'].background }}>
@@ -51,68 +103,66 @@ export default function MealDetailsScreen() {
           <Text className="text-2xl font-bold" style={{ color: Colors[colorScheme ?? 'light'].text }}>
             {mealType}: {mealName}
           </Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <FontAwesome6 name="info-circle" size={24} color={Colors[colorScheme ?? 'light'].text} />
-          </TouchableOpacity>
         </View>
 
-        <View className="mt-4">
-          <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-            Calories: {calories} kcal
-          </RNText>
-          <RNText className="text-lg mt-2" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-            Protein: {protein} g
-          </RNText>
-        </View>
-
-        {/* Modal for Recipe */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View className="flex-1 justify-center items-center bg-black/50">
-            <View className="bg-white dark:bg-black rounded-xl p-5 w-11/12 max-h-3/4">
-              <View className="flex-row justify-between items-center mb-4">
-                <RNText className="text-xl font-bold" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-                  Recipe for {mealName}
-                </RNText>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <FontAwesome6 name="xmark" size={24} color={Colors[colorScheme ?? 'light'].text} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView>
-                <RNText className="text-lg font-semibold" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-                  Ingredients
-                </RNText>
-                {recipe.ingredients.map((ingredient: string, index: number) => (
-                  <RNText
-                    key={index}
-                    className="text-base mt-1"
-                    style={{ color: Colors[colorScheme ?? 'light'].text }}
-                  >
-                    - {ingredient}
-                  </RNText>
-                ))}
-
-                <RNText className="text-lg font-semibold mt-4" style={{ color: Colors[colorScheme ?? 'light'].text }}>
-                  Instructions
-                </RNText>
-                {recipe.instructions.map((instruction: string, index: number) => (
-                  <RNText
-                    key={index}
-                    className="text-base mt-1"
-                    style={{ color: Colors[colorScheme ?? 'light'].text }}
-                  >
-                    {index + 1}. {instruction}
-                  </RNText>
-                ))}
-              </ScrollView>
-            </View>
+        {error && (
+          <View className="mt-2">
+            <RNText className="text-red-500 text-center" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              {error}
+            </RNText>
           </View>
-        </Modal>
+        )}
+
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors[colorScheme ?? 'light'].text}
+              colors={['#00BF63']}
+              progressBackgroundColor={Colors[colorScheme ?? 'light'].background}
+            />
+          }
+        >
+          <View className="mt-4">
+            <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              Calories: {calories} kcal
+            </RNText>
+            <RNText className="text-lg mt-2" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              Protein: {protein} g
+            </RNText>
+          </View>
+
+          <View className="mt-6">
+            <RNText className="text-lg font-semibold" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              Ingredients
+            </RNText>
+            {recipe.ingredients.map((ingredient: string, index: number) => (
+              <RNText
+                key={index}
+                className="text-base mt-1"
+                style={{ color: Colors[colorScheme ?? 'light'].text }}
+              >
+                • {ingredient}
+              </RNText>
+            ))}
+          </View>
+
+          <View className="mt-6">
+            <RNText className="text-lg font-semibold" style={{ color: Colors[colorScheme ?? 'light'].text }}>
+              Instructions
+            </RNText>
+            {recipe.instructions.map((instruction: string, index: number) => (
+              <RNText
+                key={index}
+                className="text-base mt-1"
+                style={{ color: Colors[colorScheme ?? 'light'].text }}
+              >
+                {index + 1}. {instruction}
+              </RNText>
+            ))}
+          </View>
+        </ScrollView>
       </ThemedView>
     </SafeAreaView>
   );

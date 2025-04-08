@@ -62,12 +62,63 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <OnboardingProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="meal-details" options={{ title: 'Meal Details', headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack 
+          screenOptions={{ 
+            headerShown: false,
+            // Disable all gesture navigation by default
+            gestureEnabled: false,
+            // Prevent going back to previous screens
+            gestureDirection: 'horizontal',
+            // Prevent going back to previous screens
+            animation: 'slide_from_right',
+          }}
+        >
+          {/* Main app tabs - disable swipe back to prevent going back to login/onboarding */}
+          <Stack.Screen 
+            name="(tabs)" 
+            options={{ 
+              headerShown: false,
+              gestureEnabled: false // Disable swipe back gesture
+            }} 
+          />
+          
+          {/* Onboarding screens - allow swipe back between onboarding screens but not to login */}
+          <Stack.Screen 
+            name="(onboarding)" 
+            options={{ 
+              headerShown: false,
+              // Disable gesture to prevent going back to login
+              gestureEnabled: false,
+              // Prevent going back to previous screens
+              animation: 'slide_from_right',
+            }} 
+          />
+          
+          {/* Login screen - disable swipe back to prevent going back to previous app state */}
+          <Stack.Screen 
+            name="index" 
+            options={{ 
+              headerShown: false,
+              gestureEnabled: false // Disable swipe back gesture
+            }} 
+          />
+          
+          {/* Other screens */}
+          <Stack.Screen 
+            name="meal-details" 
+            options={{ 
+              title: 'Meal Details', 
+              headerShown: false,
+              gestureEnabled: true // Allow swipe back to tabs
+            }} 
+          />
+          <Stack.Screen 
+            name="modal" 
+            options={{ 
+              presentation: 'modal',
+              gestureEnabled: true // Allow swipe down to dismiss modal
+            }} 
+          />
         </Stack>
       </OnboardingProvider>
     </ThemeProvider>

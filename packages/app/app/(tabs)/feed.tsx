@@ -9,9 +9,9 @@ import { FontAwesome6 } from '@expo/vector-icons';
 
 // Dummy data for the feed (replace with backend data)
 const initialFeed = [
-  { id: '1', user: 'User123', type: 'achievement', content: 'I hit my protein goal today! 50g achieved!' },
-  { id: '2', user: 'User456', type: 'meal', meal: { name: 'Grilled Chicken', calories: 400, carbs: 20, protein: 35 } },
-  { id: '3', user: 'User789', type: 'achievement', content: 'Completed my meal plan for the week!' },
+  { id: '1', user: 'Jon', type: 'achievement', content: 'I hit my protein goal today! 50g achieved!' },
+  { id: '2', user: 'Ugochukwu', type: 'meal', meal: { name: 'Grilled Chicken', calories: 400, carbs: 20, protein: 35 } },
+  { id: '3', user: 'Jane', type: 'achievement', content: 'Completed my meal plan for the week!' },
 ];
 
 // Dummy data for saved meals (this would come from MealPlanScreen's Plan Preferences)

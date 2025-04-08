@@ -10,6 +10,7 @@ import SearchBar from '@/components/SearchBar';
 import ItemList from '@/components/ItemList';
 import SelectedItems from '@/components/SelectedItems';
 import { Text as RNText } from 'react-native';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const dummyFoods = [
   'Pizza', 'Burger', 'Sushi', 'Pasta', 'Tacos', 'Salad', 'Steak', 'Fried Chicken',
@@ -21,7 +22,8 @@ const dummyFoods = [
 export default function FoodsScreen() {
   const colorScheme = useColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
+  const { onboardingData, setFavoriteFoods } = useOnboarding();
+  const [selectedFoods, setSelectedFoods] = useState<string[]>(onboardingData.favoriteFoods);
   const [customFoods, setCustomFoods] = useState<string[]>([]);
 
   const allFoods = useMemo(() => [...dummyFoods, ...customFoods], [customFoods]);
@@ -47,9 +49,13 @@ export default function FoodsScreen() {
 
   const toggleFood = (food: string) => {
     if (selectedFoods.includes(food)) {
-      setSelectedFoods(selectedFoods.filter((item) => item !== food));
+      const updatedFoods = selectedFoods.filter((item) => item !== food);
+      setSelectedFoods(updatedFoods);
+      setFavoriteFoods(updatedFoods);
     } else {
-      setSelectedFoods([...selectedFoods, food]);
+      const updatedFoods = [...selectedFoods, food];
+      setSelectedFoods(updatedFoods);
+      setFavoriteFoods(updatedFoods);
     }
   };
 
