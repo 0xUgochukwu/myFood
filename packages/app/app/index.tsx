@@ -3,6 +3,7 @@ import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, Image } from 'react-native';
+import axios from 'axios';
 import Images from '@/constants/Images';
 import CustomButton from '@/components/CustomButton';
 import Colors from '@/constants/Colors';
@@ -12,7 +13,7 @@ import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from '@env';
+import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID, API_URL } from '@env';
 import { makeRedirectUri } from 'expo-auth-session';
 WebBrowser.maybeCompleteAuthSession();
 
@@ -38,9 +39,16 @@ export default function App() {
       const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const userInfo = await response.json();
-      await AsyncStorage.setItem('user', JSON.stringify(userInfo));
-      setUser(userInfo);
+      const googleUserInfo = await response.json();
+      const userInfo = await axios.post(`${API_URL}/auth/google`, {
+        firstName: googleUserInfo.given_name,
+        lastName: googleUserInfo.family_name,
+        email: googleUserInfo.email,
+        image: googleUserInfo.picture,
+      });
+      await AsyncStorage.setItem('user', JSON.stringify(userInfo.data.user));
+      await AsyncStorage.setItem('token', userInfo.data.token);
+      setUser(userInfo.data.user);
       router.push('/ingredients-at-hand');
     } catch (error) {
       console.error('Error getting user info', error);
@@ -96,12 +104,12 @@ export default function App() {
               icon='google'
               color='#00BF63'
               isLoading={false}
-              // handlePress={handleGoogleLogin}
-              handlePress={async () => {
-                // await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
-                // setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
-                router.push('/ingredients-at-hand');
-              }}
+              handlePress={handleGoogleLogin}
+              // handlePress={async () => {
+              //   // await AsyncStorage.setItem('user', `{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`);
+              //   // setUser(JSON.parse(`{"email": "ceeugochukwu@gmail.com", "family_name": "Chukwuma", "given_name": "Ugochukwu", "id": "106032241497881947873", "name": "Ugochukwu Chukwuma", "picture": "https://lh3.googleusercontent.com/a/ACg8ocLRTy8eSQaHKBzeX5F8734OxL7HG1RBd52D1W8rD-fapcZTOreo=s96-c", "verified_email": true}`));
+              //   router.push('/ingredients-at-hand');
+              // }}
             />
             <Link href="/today" className='text-secondary'>Go to Tabs</Link>
             {/* <Text> */}

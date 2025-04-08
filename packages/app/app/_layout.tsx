@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import '../global.css'
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { OnboardingProvider } from './context/OnboardingContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -60,13 +61,15 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="meal-details" options={{ title: 'Meal Details', headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+      <OnboardingProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="meal-details" options={{ title: 'Meal Details', headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        </Stack>
+      </OnboardingProvider>
     </ThemeProvider>
   );
 }
