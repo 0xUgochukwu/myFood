@@ -10,11 +10,11 @@ import { Text as RNText } from 'react-native';
 
 export default function GoalsScreen() {
   const colorScheme = useColorScheme();
-  const [calories, setCalories] = useState('');
-  const [protein, setProtein] = useState('');
-  const [fiber, setFiber] = useState('');
-  const [vitaminC, setVitaminC] = useState('');
-  const [iron, setIron] = useState('');
+  const [calories, setCalories] = useState('2000');
+  const [protein, setProtein] = useState('50');
+  const [fiber, setFiber] = useState('25');
+  const [vitaminC, setVitaminC] = useState('75');
+  const [iron, setIron] = useState('8');
   const [otherGoals, setOtherGoals] = useState('');
 
   const isFormValid = () => {
@@ -35,6 +35,17 @@ export default function GoalsScreen() {
   const handleFinish = () => {
     if (!isFormValid()) return;
     router.push('/today');
+  };
+
+  const incrementValue = (setter: React.Dispatch<React.SetStateAction<string>>, currentValue: string, step: number) => {
+    const numericValue = parseInt(currentValue) || 0;
+    setter((numericValue + step).toString());
+  };
+
+  const decrementValue = (setter: React.Dispatch<React.SetStateAction<string>>, currentValue: string, step: number) => {
+    const numericValue = parseInt(currentValue) || 0;
+    const newValue = Math.max(0, numericValue - step); // Prevent going below 0
+    setter(newValue.toString());
   };
 
   return (
@@ -60,12 +71,16 @@ export default function GoalsScreen() {
                 <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                   Calories (kcal)
                 </RNText>
-                <View className="items-end">
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-l-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => decrementValue(setCalories, calories, 100)}
+                  >
+                    <FontAwesome6 name="minus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TextInput
-                    className="h-12 w-24 text-lg text-center rounded-xl bg-white dark:bg-black border border-[#00BF63] px-4"
+                    className="h-12 w-24 text-lg text-center bg-white dark:bg-black border-y border-[#00BF63] px-4"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="0"
-                    placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     keyboardType="numeric"
                     value={calories}
                     onChangeText={(text) => {
@@ -73,6 +88,12 @@ export default function GoalsScreen() {
                       setCalories(numericValue);
                     }}
                   />
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-r-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => incrementValue(setCalories, calories, 100)}
+                  >
+                    <FontAwesome6 name="plus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
               <RNText
@@ -89,12 +110,16 @@ export default function GoalsScreen() {
                 <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                   Protein (g)
                 </RNText>
-                <View className="items-end">
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-l-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => decrementValue(setProtein, protein, 10)}
+                  >
+                    <FontAwesome6 name="minus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TextInput
-                    className="h-12 w-24 text-lg text-center rounded-xl bg-white dark:bg-black border border-[#00BF63] px-4"
+                    className="h-12 w-24 text-lg text-center bg-white dark:bg-black border-y border-[#00BF63] px-4"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="0"
-                    placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     keyboardType="numeric"
                     value={protein}
                     onChangeText={(text) => {
@@ -102,6 +127,12 @@ export default function GoalsScreen() {
                       setProtein(numericValue);
                     }}
                   />
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-r-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => incrementValue(setProtein, protein, 10)}
+                  >
+                    <FontAwesome6 name="plus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
               <RNText
@@ -118,12 +149,16 @@ export default function GoalsScreen() {
                 <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                   Fiber (g)
                 </RNText>
-                <View className="items-end">
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-l-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => decrementValue(setFiber, fiber, 5)}
+                  >
+                    <FontAwesome6 name="minus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TextInput
-                    className="h-12 w-24 text-lg text-center rounded-xl bg-white dark:bg-black border border-[#00BF63] px-4"
+                    className="h-12 w-24 text-lg text-center bg-white dark:bg-black border-y border-[#00BF63] px-4"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="0"
-                    placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     keyboardType="numeric"
                     value={fiber}
                     onChangeText={(text) => {
@@ -131,6 +166,12 @@ export default function GoalsScreen() {
                       setFiber(numericValue);
                     }}
                   />
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-r-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => incrementValue(setFiber, fiber, 5)}
+                  >
+                    <FontAwesome6 name="plus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
               <RNText
@@ -147,12 +188,16 @@ export default function GoalsScreen() {
                 <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                   Vitamin C (mg)
                 </RNText>
-                <View className="items-end">
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-l-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => decrementValue(setVitaminC, vitaminC, 5)}
+                  >
+                    <FontAwesome6 name="minus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TextInput
-                    className="h-12 w-24 text-lg text-center rounded-xl bg-white dark:bg-black border border-[#00BF63] px-4"
+                    className="h-12 w-24 text-lg text-center bg-white dark:bg-black border-y border-[#00BF63] px-4"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="0"
-                    placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     keyboardType="numeric"
                     value={vitaminC}
                     onChangeText={(text) => {
@@ -160,6 +205,12 @@ export default function GoalsScreen() {
                       setVitaminC(numericValue);
                     }}
                   />
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-r-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => incrementValue(setVitaminC, vitaminC, 5)}
+                  >
+                    <FontAwesome6 name="plus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
               <RNText
@@ -176,12 +227,16 @@ export default function GoalsScreen() {
                 <RNText className="text-lg" style={{ color: Colors[colorScheme ?? 'light'].text }}>
                   Iron (mg)
                 </RNText>
-                <View className="items-end">
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-l-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => decrementValue(setIron, iron, 1)}
+                  >
+                    <FontAwesome6 name="minus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TextInput
-                    className="h-12 w-24 text-lg text-center rounded-xl bg-white dark:bg-black border border-[#00BF63] px-4"
+                    className="h-12 w-24 text-lg text-center bg-white dark:bg-black border-y border-[#00BF63] px-4"
                     style={{ color: Colors[colorScheme ?? 'light'].text }}
-                    placeholder="0"
-                    placeholderTextColor={Colors[colorScheme ?? 'light'].text + '80'}
                     keyboardType="numeric"
                     value={iron}
                     onChangeText={(text) => {
@@ -189,6 +244,12 @@ export default function GoalsScreen() {
                       setIron(numericValue);
                     }}
                   />
+                  <TouchableOpacity
+                    className="h-12 w-12 rounded-r-xl bg-[#00BF63] flex items-center justify-center"
+                    onPress={() => incrementValue(setIron, iron, 1)}
+                  >
+                    <FontAwesome6 name="plus" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
               <RNText
