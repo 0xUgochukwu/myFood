@@ -55,7 +55,17 @@ export default function App() {
       if (token && authResponse) {
         const user = JSON.parse(authResponse) as UserType;
         setUser(user);
-        router.push('/today');
+        
+        const onboardingResponse = await checkOnboardingStatus();
+        if (!onboardingResponse.success || !onboardingResponse.data) {
+          return;
+        }
+        
+        if (onboardingResponse.data.onboardingCompleted) {
+          router.push('/today');
+        } else {
+          router.push('/ingredients-at-hand');
+        }
       }
     } catch (error) {
       console.error('Error checking auth state:', error);
@@ -83,10 +93,18 @@ export default function App() {
       });
       console.log('Auth response:', authResponse);
 
-      if (authResponse.success && authResponse.data) {
-        setUser(authResponse.data.user);
-        await AsyncStorage.setItem('user', JSON.stringify(authResponse.data.user));
-        router.push('/today');
+      if (authResponse && authResponse) {
+        setUser(authResponse);
+        await AsyncStorage.setItem('user', JSON.stringify(authResponse));
+        
+        const onboardingResponse = await checkOnboardingStatus();
+        if (onboardingResponse.success && onboardingResponse.data) {
+          if (onboardingResponse.data.onboardingCompleted) {
+            router.push('/today');
+          } else {
+            router.push('/ingredients-at-hand');
+          }
+        }
       }
     } catch (error) {
       console.log('Error during authentication:', error);
@@ -131,11 +149,6 @@ export default function App() {
               isLoading={isLoading}
               handlePress={handleGoogleLogin}
             />
-            <Link href="/today">
-              <Text className='text-l my-4 text-center'>
-                Skip for now
-              </Text>
-            </Link>
           </View>
           <StatusBar backgroundColor={Colors[colorScheme ?? 'light'].background} style="light" />
         </ScrollView>

@@ -29,6 +29,14 @@ interface UserPreferences {
   favoriteFoods: string[];
 }
 
+interface NutritionGoals {
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFat: number;
+  dailyFiber: number;
+}
+
 export const getAuthToken = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem('token');
@@ -230,7 +238,7 @@ export const authenticateWithGoogle = async (userInfo: GoogleUserInfo): Promise<
     if (data.token) {
       await setAuthToken(data.token);
     }
-    return data;
+    return data.user;
   } catch (error) {
     return {
       success: false,
@@ -368,6 +376,30 @@ export const updateUserPreferences = async (preferences: UserPreferences): Promi
     return {
       success: false,
       message: 'Failed to update user preferences',
+      error,
+    };
+  }
+};
+
+export const getUserGoals = async (): Promise<ApiResponse<NutritionGoals>> => {
+  try {
+    const response = await fetchWithAuth('/users/goals');
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting user goals:', error);
+    return {
+      success: false,
+      message: 'Failed to get user goals',
       error,
     };
   }

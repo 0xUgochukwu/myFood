@@ -9,7 +9,7 @@ import { Text as RNText } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 import CircularProgress from '@/components/CircularProgress';
-import { getTodayMealPlan, generateMealPlan } from '../services/api';
+import { getTodayMealPlan, generateMealPlan, getUserGoals } from '../services/api';
 import { useOnboarding } from '../context/OnboardingContext';
 
 interface MealPlanType {
@@ -72,12 +72,32 @@ export default function TodayScreen() {
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [userGoals, setUserGoals] = useState({
+    calories: 2000,
+    protein: 50,
+    carbs: 250,
+  });
 
-  // User goals from onboarding context
-  const userGoals = {
-    calories: onboardingData.goals.dailyCalories || 2000,
-    protein: onboardingData.goals.dailyProtein || 50,
-    carbs: onboardingData.goals.dailyCarbs || 250,
+  // Fetch user goals from backend
+  const fetchUserGoals = async () => {
+    try {
+      const response = await getUserGoals();
+      if (response.success && response.data) {
+        setUserGoals({
+          calories: response.data.dailyCalories || 2000,
+          protein: response.data.dailyProtein || 50,
+          carbs: response.data.dailyCarbs || 250,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching user goals:', err);
+      // Fallback to onboarding data if API call fails
+      setUserGoals({
+        calories: onboardingData.goals.dailyCalories || 2000,
+        protein: onboardingData.goals.dailyProtein || 50,
+        carbs: onboardingData.goals.dailyCarbs || 250,
+      });
+    }
   };
 
   const fetchTodayMealPlan = async () => {
@@ -171,13 +191,14 @@ export default function TodayScreen() {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await fetchTodayMealPlan();
+    await Promise.all([fetchTodayMealPlan(), fetchUserGoals()]);
     setRefreshing(false);
   }, []);
 
   useEffect(() => {
     setIsLoading(true);
-    fetchTodayMealPlan().finally(() => setIsLoading(false));
+    Promise.all([fetchTodayMealPlan(), fetchUserGoals()])
+      .finally(() => setIsLoading(false));
   }, []);
 
   const consumed = {

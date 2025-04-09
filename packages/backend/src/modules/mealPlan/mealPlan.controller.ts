@@ -48,40 +48,80 @@ class MealPlanController {
       }
 
       const content = `
-      You are a meal planning assistant for the "MyFood" app, which helps users plan healthier meals based on their dietary preferences, nutritional goals, and available ingredients. Your task is to generate a 7-day meal plan for the user with breakfast, lunch, and dinner for each day. Each meal should include a recipe name, a brief description, and a list of ingredients. Ensure the meal plan aligns with the user's preferences, goals, and available ingredients as much as possible.
+      You are a meal planning assistant for the "MyFood" app. Your task is to generate a 7-day meal plan with breakfast, lunch, and dinner for each day.
 
+      **TOP PRIORITY: NUTRITIONAL ACCURACY**
+      
       **User Details:**
       - **Dietary Preferences:**
         - Diets: ${user!.preferences.diets.join(', ') || 'None'}
         - Allergies: ${user!.preferences.allergies.join(', ') || 'None'}
         - Favorite Foods: ${user!.preferences.favoriteFoods.join(', ') || 'None'}
-      - **Nutritional Goals (per day):**
-        - Calories: ${user!.goals.dailyCalories} kcal
-        - Protein: ${user!.goals.dailyProtein} g
-        - Carbs: ${user!.goals.dailyCarbs} g
-        - Fat: ${user!.goals.dailyFat} g
-        - Fiber: ${user!.goals.dailyFiber} g
       - **Available Ingredients:** ${user!.availableIngredients.join(', ') || 'None'}
 
-      **Instructions:**
-      1. Create a 7-day meal plan with three meals per day (breakfast, lunch, dinner).
-      2. For each meal, provide:
+      **BATCH COOKING REQUIREMENT:**
+      - The user should NOT cook every day - this is very important
+      - For each week, designate only 2-3 specific days as "cooking days"
+      - On cooking days, prepare multiple portions of meals that will be eaten throughout the week
+      - Clearly mark each cooking day with "COOKING DAY" and specify exactly which meals are being prepared
+      - For each prepared meal, specify the number of portions in parentheses, e.g., "Grilled Chicken (3 portions)"
+      - When a meal is repeated on subsequent days, note that it's a leftover portion from the cooking day
+      - The meal plan should show clear meal repetition across the week, with minimal daily cooking
+
+      **PRE-CALCULATED MEAL NUTRITIONAL TARGETS:**
+      Use these EXACT nutritional targets for each meal. Do not deviate from these values.
+      
+      BREAKFAST (30% of daily nutrition):
+      - Calories: ${Math.round(user!.goals.dailyCalories * 0.3)} kcal
+      - Protein: ${Math.round(user!.goals.dailyProtein * 0.3)} g
+      - Carbs: ${Math.round(user!.goals.dailyCarbs * 0.3)} g
+      - Fat: ${Math.round(user!.goals.dailyFat * 0.3)} g
+      - Fiber: ${Math.round(user!.goals.dailyFiber * 0.3)} g
+      
+      LUNCH (35% of daily nutrition):
+      - Calories: ${Math.round(user!.goals.dailyCalories * 0.35)} kcal
+      - Protein: ${Math.round(user!.goals.dailyProtein * 0.35)} g
+      - Carbs: ${Math.round(user!.goals.dailyCarbs * 0.35)} g
+      - Fat: ${Math.round(user!.goals.dailyFat * 0.35)} g
+      - Fiber: ${Math.round(user!.goals.dailyFiber * 0.35)} g
+      
+      DINNER (35% of daily nutrition):
+      - Calories: ${Math.round(user!.goals.dailyCalories * 0.35)} kcal
+      - Protein: ${Math.round(user!.goals.dailyProtein * 0.35)} g
+      - Carbs: ${Math.round(user!.goals.dailyCarbs * 0.35)} g
+      - Fat: ${Math.round(user!.goals.dailyFat * 0.35)} g
+      - Fiber: ${Math.round(user!.goals.dailyFiber * 0.35)} g
+      
+      DAILY TOTALS (for reference):
+      - Calories: ${user!.goals.dailyCalories} kcal
+      - Protein: ${user!.goals.dailyProtein} g
+      - Carbs: ${user!.goals.dailyCarbs} g
+      - Fat: ${user!.goals.dailyFat} g
+      - Fiber: ${user!.goals.dailyFiber} g
+      
+      **CRITICAL INSTRUCTIONS:**
+      1. Create EACH meal to EXACTLY match the pre-calculated nutritional values above
+      2. Do NOT attempt to recalculate or redistribute the nutritional values
+      3. EVERY breakfast must match the breakfast values, EVERY lunch must match the lunch values, and EVERY dinner must match the dinner values
+      4. Each meal's nutrition can vary by MAXIMUM ±5% from the target values
+      5. IMPLEMENT BATCH COOKING: Include only 2-3 cooking days per week, with meals prepared in multiple portions and repeated on other days unless the user has so much time to cook like more than 10 hours a week
+      
+      **Meal Plan Format:**
+      1. For each meal, provide:
          - Recipe name
          - Brief description (1-2 sentences)
-         - List of ingredients (include quantities if possible)
-      3. Ensure the recipes:
-         - Follow the user's dietary preferences (e.g., vegetarian, low-carb).
-         - Avoid the user's allergies.
-         - Prioritize the user's favorite foods where possible.
-         - Use the user's available ingredients as much as possible, but you can include additional ingredients if needed.
-      4. Ensure the total nutritional content of each day's meals is as close as possible to the user's daily nutritional goals be very strrict with this add up the nutiritional content and make sure it is is more or very close to the users daily goals, here they are again:
-      - Calories: ${user!.goals.dailyCalories} kcal
-        - Protein: ${user!.goals.dailyProtein} g
-        - Carbs: ${user!.goals.dailyCarbs} g
-        - Fat: ${user!.goals.dailyFat} g
-        - Fiber: ${user!.goals.dailyFiber} g.
-      5. The user is not looking to cook everyday so on the meal plan, cooking should not be done everyday and meals that are cooked can be repeated you can specify how many portions of the meal is to be cooked in the mealToCook with '(n portions)' wherew n is the number of portions/ how many times the user will eat the meal within the week and then repeat the meal within the week depending on the number of portions, make sure the total
-        meal cooking time is as close as possible to how long the user has to cook weekly
+         - List of ingredients with precise quantities
+         - Exact nutritional breakdown matching the targets above
+      
+      **Cooking Efficiency:**
+      - The user won't cook every day
+      - For meals that are cooked, indicate portions with "(n portions)" where n is the number of times it will be eaten
+      - Repeat meals according to the number of portions prepared
+      
+      **VERIFICATION:**
+      Before finalizing each meal, verify that its nutritional values are within ±5% of the specified targets. If any value is outside this range, adjust the ingredients to meet the targets.
+      
+      IMPORTANT: Using the pre-calculated values above is NON-NEGOTIABLE. Do not attempt to recalculate or change these values.
     `;
       const thread = await openai.beta.threads.create();
       await openai.beta.threads.messages.create(
@@ -150,11 +190,6 @@ class MealPlanController {
       }
 
       const weekRange = this.getWeekRange();
-      console.log('Searching for meal plan:', {
-        userId: user._id,
-        weekStart: weekRange.start,
-        weekEnd: weekRange.end
-      });
 
       const mealPlan = await MealPlan.findOne({
         user: user._id,
@@ -200,13 +235,6 @@ class MealPlanController {
 
       const weekRange = this.getWeekRange();
       const today = new Date();
-      console.log('Searching for today\'s meal plan:', {
-        userId: user._id,
-        weekStart: weekRange.start,
-        weekEnd: weekRange.end,
-        today: today
-      });
-
       const mealPlan = await MealPlan.findOne({
         user: user._id,
         'week.start': { 

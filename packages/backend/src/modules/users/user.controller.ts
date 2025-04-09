@@ -135,6 +135,28 @@ class UserController {
       res.status(500).json({ success: false, message: 'Something went wrong' });
     }
   }
+
+  getUserGoals = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+        return;
+      }
+      
+      res.json({
+        success: true,
+        message: 'User goals retrieved successfully',
+        data: user.goals
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong' });
+    }
+  }
 }
 
 export default new UserController();

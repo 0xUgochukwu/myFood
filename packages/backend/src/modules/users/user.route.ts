@@ -10,6 +10,7 @@ router.post('/complete-onboarding', authenticate, UserController.completeOnboard
 router.get('/available-ingredients', authenticate, UserController.getAvailableIngredients);
 router.post('/available-ingredients', authenticate, UserController.addAvailableIngredient);
 router.get('/onboarding-status', authenticate, UserController.checkOnboardingStatus);
+router.get('/goals', authenticate, UserController.getUserGoals);
 
 export default router;
 
