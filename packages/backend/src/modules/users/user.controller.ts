@@ -11,7 +11,7 @@ class UserController {
       const existingUser = await User.findOne({ email: user.email });
       if (existingUser) {
         const token = jwt.sign(user, process.env.JWT_SECRET as string, {
-          expiresIn: '30d',
+          expiresIn: '24h',
         });
         res.json({
           success: true,

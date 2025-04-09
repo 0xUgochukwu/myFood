@@ -13,7 +13,8 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from '@env';
-import { authenticateWithGoogle, checkOnboardingStatus } from './services/api';
+import { authenticateWithGoogle, checkOnboardingStatus, getAuthToken } from './services/api';
+import { User as UserType } from './types/user';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -27,7 +28,7 @@ interface User {
 export default function App() {
   const colorScheme = useColorScheme();
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
 
   const [_, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
@@ -48,40 +49,18 @@ export default function App() {
 
   const checkExistingSession = async () => {
     try {
-      const userJSON = await AsyncStorage.getItem('user');
-      const sessionTimestamp = await AsyncStorage.getItem('sessionTimestamp');
-      
-      if (!userJSON || !sessionTimestamp) {
-        return;
-      }
+      const authResponse = await AsyncStorage.getItem('user');
+      const token = await getAuthToken();
 
-      // Check if session is older than 24 hours
-      const currentTime = new Date().getTime();
-      const sessionTime = parseInt(sessionTimestamp);
-      const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      
-      if (currentTime - sessionTime > twentyFourHours) {
-        // Session expired, clear storage
-        await AsyncStorage.multiRemove(['user', 'sessionTimestamp', 'token']);
-        return;
-      }
-
-      // Valid session, check onboarding status
-      const onboardingResponse = await checkOnboardingStatus();
-      if (!onboardingResponse.success || !onboardingResponse.data) {
-        return;
-      }
-
-      setUser(onboardingResponse.data.user);
-      
-      // Route based on onboarding status
-      if (onboardingResponse.data.onboardingCompleted) {
+      if (token && authResponse) {
+        const user = JSON.parse(authResponse) as UserType;
+        setUser(user);
         router.push('/today');
-      } else {
-        router.push('/ingredients-at-hand');
       }
     } catch (error) {
-      console.error('Error checking session:', error);
+      console.error('Error checking auth state:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,24 +83,10 @@ export default function App() {
       });
       console.log('Auth response:', authResponse);
 
-      if (authResponse) {
-        // Store user data and session timestamp
-        await AsyncStorage.multiSet([
-          ['user', JSON.stringify(authResponse)],
-          ['sessionTimestamp', new Date().getTime().toString()]
-
-        ]);
-        setUser(authResponse);
-
-        const onboardingResponse = await checkOnboardingStatus();
-        if (onboardingResponse.success && onboardingResponse.data) {
-          if (onboardingResponse.data.onboardingCompleted) {
-            router.push('/today');
-          } else {
-            router.push('/ingredients-at-hand');
-          }
-        }
-    
+      if (authResponse.success && authResponse.data) {
+        setUser(authResponse.data.user);
+        await AsyncStorage.setItem('user', JSON.stringify(authResponse.data.user));
+        router.push('/today');
       }
     } catch (error) {
       console.log('Error during authentication:', error);

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 
 const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://localhost:8080/api';
 
@@ -20,6 +21,12 @@ interface GoogleUserInfo {
 interface AuthResponse {
   user: any;
   token: string;
+}
+
+interface UserPreferences {
+  diets: string[];
+  allergies: string[];
+  favoriteFoods: string[];
 }
 
 export const getAuthToken = async (): Promise<string | null> => {
@@ -47,6 +54,12 @@ export const removeAuthToken = async (): Promise<void> => {
   }
 };
 
+const handleUnauthorized = async () => {
+  await removeAuthToken();
+  await AsyncStorage.multiRemove(['user', 'sessionTimestamp', 'token']);
+  router.push('/');
+};
+
 const fetchWithAuth = async (
   endpoint: string,
   options: RequestInit = {}
@@ -59,10 +72,16 @@ const fetchWithAuth = async (
     ...options.headers,
   };
 
-  return fetch(`${API_URL}${endpoint}`, {
+  const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   });
+
+  if (response.status === 401) {
+    await handleUnauthorized();
+  }
+
+  return response;
 };
 
 export const completeOnboarding = async (
@@ -90,6 +109,14 @@ export const completeOnboarding = async (
       }),
     });
 
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -107,6 +134,14 @@ export const generateMealPlan = async (): Promise<ApiResponse<any>> => {
     const response = await fetchWithAuth('/meal-plan/generate', {
       method: 'POST',
     });
+
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
 
     const data = await response.json();
     return data;
@@ -126,6 +161,14 @@ export const getTodayMealPlan = async (): Promise<ApiResponse<any>> => {
       method: 'GET',
     });
 
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -143,6 +186,14 @@ export const getWeeklyMealPlan = async (): Promise<ApiResponse<any>> => {
     const response = await fetchWithAuth('/meal-plan', {
       method: 'GET',
     });
+
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
 
     const data = await response.json();
     return data;
@@ -166,12 +217,20 @@ export const authenticateWithGoogle = async (userInfo: GoogleUserInfo): Promise<
       body: JSON.stringify(userInfo),
     });
 
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+
     const data = await response.json();
-    console.log(data);
+    console.log('Auth response from server:', data);
     if (data.token) {
       await setAuthToken(data.token);
     }
-    return data.user;
+    return data;
   } catch (error) {
     return {
       success: false,
@@ -184,6 +243,15 @@ export const authenticateWithGoogle = async (userInfo: GoogleUserInfo): Promise<
 export const getAvailableIngredients = async (): Promise<ApiResponse<string[]>> => {
   try {
     const response = await fetchWithAuth('/users/available-ingredients');
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
     const data = await response.json();
     return data;
   } catch (error) {
@@ -199,6 +267,15 @@ export const getAvailableIngredients = async (): Promise<ApiResponse<string[]>> 
 export const getNeededIngredients = async (): Promise<ApiResponse<string[]>> => {
   try {
     const response = await fetchWithAuth('/meal-plan/needed-ingredients');
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
     const data = await response.json();
     return data;
   } catch (error) {
@@ -220,6 +297,15 @@ export const addAvailableIngredient = async (ingredient: string): Promise<ApiRes
       },
       body: JSON.stringify({ ingredient }),
     });
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
     const data = await response.json();
     return data;
   } catch (error) {
@@ -252,6 +338,36 @@ export const checkOnboardingStatus = async (): Promise<ApiResponse<OnboardingSta
     return {
       success: false,
       message: 'Failed to check onboarding status',
+      error,
+    };
+  }
+};
+
+export const updateUserPreferences = async (preferences: UserPreferences): Promise<ApiResponse<UserPreferences>> => {
+  try {
+    const response = await fetchWithAuth('/users/preferences', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(preferences),
+    });
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating user preferences:', error);
+    return {
+      success: false,
+      message: 'Failed to update user preferences',
       error,
     };
   }
