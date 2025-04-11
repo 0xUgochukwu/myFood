@@ -7,7 +7,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { Text as RNText } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import { getAvailableIngredients, getNeededIngredients, addAvailableIngredient } from '../services/api';
+import { getAvailableIngredients, getNeededIngredients, addAvailableIngredient, removeAvailableIngredient } from '../services/api';
 
 export default function IngredientsScreen() {
   const colorScheme = useColorScheme();
@@ -66,16 +66,15 @@ export default function IngredientsScreen() {
 
   const handleRemoveFromAvailable = async (ingredient: string) => {
     try {
-      // Remove from available ingredients
-      const updatedAvailable = availableIngredients.filter(item => item !== ingredient);
-      setAvailableIngredients(updatedAvailable);
+      // Remove from available ingredients via API
+      const response = await removeAvailableIngredient(ingredient);
       
-      // Add to toBuy ingredients if not already there
-      if (!toBuyIngredients.includes(ingredient)) {
-        setToBuyIngredients([...toBuyIngredients, ingredient]);
+      if (!response.success) {
+        console.error('Error removing ingredient from available:', response.message);
+        setError('Failed to remove ingredient from available');
       }
       
-      // Refresh the lists
+      // Refresh the lists to update both available and needed ingredients
       await fetchIngredients();
     } catch (err) {
       console.error('Error removing ingredient:', err);
@@ -89,9 +88,12 @@ export default function IngredientsScreen() {
       const updatedToBuy = toBuyIngredients.filter(item => item !== ingredient);
       setToBuyIngredients(updatedToBuy);
       
-      // Add to available ingredients if not already there
-      if (!availableIngredients.includes(ingredient)) {
-        setAvailableIngredients([...availableIngredients, ingredient]);
+      // Add to available ingredients via API
+      const response = await addAvailableIngredient(ingredient);
+      
+      if (!response.success) {
+        console.error('Error adding ingredient to available:', response.message);
+        setError('Failed to add ingredient to available');
       }
       
       // Refresh the lists

@@ -2,8 +2,7 @@ import json
 import math
 
 # Input and output file paths
-json_input_file = 'recipes.json'  # The JSON file to split
-output_prefix = 'chunk_'        # Output files will be chunk_0.json, chunk_1.json, etc.
+json_input_file = 'recipes.json'  
 
 # Step 1: Read the JSON file
 with open(json_input_file, 'r', encoding='utf-8') as jsonfile:
@@ -11,12 +10,12 @@ with open(json_input_file, 'r', encoding='utf-8') as jsonfile:
 
 # Step 2: Calculate chunk size
 total_items = len(data)
-chunk_size = math.ceil(total_items / 130)  # Divide into 6 chunks, round up
+chunk_size = math.ceil(total_items / 130)
 
 # Step 3: Split into 6 chunks and write to separate JSON files
 for i in range(130):
     start_idx = i * chunk_size
-    end_idx = min(start_idx + chunk_size, total_items)  # Don’t exceed total items
+    end_idx = min(start_idx + chunk_size, total_items)  
     chunk = data[start_idx:end_idx]
 
     # Write chunk to a new JSON file

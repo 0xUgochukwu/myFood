@@ -326,6 +326,36 @@ export const addAvailableIngredient = async (ingredient: string): Promise<ApiRes
   }
 };
 
+export const removeAvailableIngredient = async (ingredient: string): Promise<ApiResponse<string[]>> => {
+  try {
+    const response = await fetchWithAuth('/users/available-ingredients', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ingredient }),
+    });
+    
+    if (response.status === 401) {
+      await handleUnauthorized();
+      return {
+        success: false,
+        message: 'Authentication failed',
+      };
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error removing available ingredient:', error);
+    return {
+      success: false,
+      message: 'Failed to remove available ingredient',
+      error,
+    };
+  }
+};
+
 interface OnboardingStatus {
   onboardingCompleted: boolean;
   user: {
