@@ -78,7 +78,7 @@ class UserController {
       res.json({
         success: true,
         message: 'Available ingredients retrieved successfully',
-        availableIngredients: user?.availableIngredients,
+        data: user?.availableIngredients,
       });
     } catch (error) {
       console.log(error);
@@ -151,6 +151,36 @@ class UserController {
         success: true,
         message: 'User goals retrieved successfully',
         data: user.goals
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ success: false, message: 'Something went wrong' });
+    }
+  }
+
+  removeAvailableIngredient = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = await User.findOne({ email: req.user?.email });
+      if (!user) {
+        res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+        return;
+      }
+      
+      const { ingredient } = req.body;
+      const index = user.availableIngredients.indexOf(ingredient);
+      
+      if (index > -1) {
+        user.availableIngredients.splice(index, 1);
+        await user.save();
+      }
+      
+      res.json({
+        success: true,
+        message: 'Available ingredient removed successfully',
+        data: user.availableIngredients
       });
     } catch (error) {
       console.log(error);

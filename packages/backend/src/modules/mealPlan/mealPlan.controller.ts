@@ -17,6 +17,8 @@ class MealPlanController {
     return { start: monday, end: sunday };
   }
 
+  // Generate a meal plan for the user
+  // This is the main function that generates the meal plan
   generateMealPlan = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await User.findOne({ email: req.user?.email });
@@ -47,6 +49,7 @@ class MealPlanController {
         return;
       }
 
+      // Prompt for meal plan generation
       const content = `
       You are a meal planning assistant for the "MyFood" app. Your task is to generate a 7-day meal plan with breakfast, lunch, and dinner for each day.
 
@@ -58,15 +61,6 @@ class MealPlanController {
         - Allergies: ${user!.preferences.allergies.join(', ') || 'None'}
         - Favorite Foods: ${user!.preferences.favoriteFoods.join(', ') || 'None'}
       - **Available Ingredients:** ${user!.availableIngredients.join(', ') || 'None'}
-
-      **BATCH COOKING REQUIREMENT:**
-      - The user should NOT cook every day - this is very important
-      - For each week, designate only 2-3 specific days as "cooking days"
-      - On cooking days, prepare multiple portions of meals that will be eaten throughout the week
-      - Clearly mark each cooking day with "COOKING DAY" and specify exactly which meals are being prepared
-      - For each prepared meal, specify the number of portions in parentheses, e.g., "Grilled Chicken (3 portions)"
-      - When a meal is repeated on subsequent days, note that it's a leftover portion from the cooking day
-      - The meal plan should show clear meal repetition across the week, with minimal daily cooking
 
       **PRE-CALCULATED MEAL NUTRITIONAL TARGETS:**
       Use these EXACT nutritional targets for each meal. Do not deviate from these values.
@@ -123,6 +117,8 @@ class MealPlanController {
       
       IMPORTANT: Using the pre-calculated values above is NON-NEGOTIABLE. Do not attempt to recalculate or change these values.
     `;
+
+      // Create a thread and add the user's prompt
       const thread = await openai.beta.threads.create();
       await openai.beta.threads.messages.create(
         thread.id,
@@ -131,7 +127,8 @@ class MealPlanController {
           content
         }
       );
-      
+
+      // Create a run to process the user's prompt
       let run = await openai.beta.threads.runs.createAndPoll(
         thread.id,
         {
@@ -139,17 +136,22 @@ class MealPlanController {
         }
       );
 
+      // Check if the run is completed
       if (run.status === 'completed') {
         const messages = await openai.beta.threads.messages.list(
           run.thread_id
         );
 
+        // Get the first message content
         const messageContent = messages.data[0]?.content[0];
         if (!messageContent || messageContent.type !== 'text') {
           throw new Error('Invalid response from OpenAI');
         }
 
+        // Parse the response
         const response = JSON.parse(messageContent.text.value);
+
+        // Create a new meal plan
         const mealPlan = new MealPlan({
           user: user._id,
           dailyPlans: response.dailyPlans,
@@ -157,7 +159,10 @@ class MealPlanController {
           ingredientsNeeded: response.ingredientsNeeded,
         });
 
+        // Save the meal plan in the database
         await mealPlan.save();
+
+        // Send the response
         res.status(200).json({ 
           success: true, 
           message: 'Meal plan generated successfully', 
